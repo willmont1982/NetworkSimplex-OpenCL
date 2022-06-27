@@ -9,9 +9,6 @@
 
 #include <immintrin.h>
 
-// AVX2/AVX512 aligned memory access requires 256/512 bit alignment. Also Intel
-// processors typically use 64 byte (i.e. 512 bit) cache alignment. Hence 512
-// bit alignment is a safe choice for both correctness and performance.
 #include <boost/align/aligned_allocator.hpp>
 template <typename T>
 using vec = std::vector<T, boost::alignment::aligned_allocator<T, 512>>;
@@ -218,7 +215,7 @@ find_entering_arc_range_omp(Graph& graph, int32_t beg_a, int32_t end_a)
 {
     elem_t min = {0, 0};
 
-#pragma omp parallel for reduction(min:min)
+//Paralelizando 
     for (int32_t a = beg_a; a < end_a; ++a) {
         int32_t c = graph.states[a] *
             (graph.costs[a] +
@@ -284,7 +281,7 @@ find_entering_arc_range_avx2(Graph& graph, int32_t beg_a, int32_t end_a)
 
     return min;
 }
-#elif defined(OMP_AVX2)
+#elif defined(AVX2)
 struct elem_m256i_t {
     __m256i ind;
     __m256i val;
@@ -298,7 +295,7 @@ min_m256i_f(elem_m256i_t& out, const elem_m256i_t& in)
     out.val = _mm256_min_epi32(in.val, out.val);
 }
 
-#pragma omp declare \
+
     reduction(min : elem_m256i_t : min_m256i_f(omp_out, omp_in)) \
     initializer(omp_priv = {_mm256_set1_epi32(0), _mm256_set1_epi32(0)})
 
@@ -311,7 +308,6 @@ find_entering_arc_range_omp_avx2(Graph& graph, int32_t beg_a, int32_t end_a)
 
     elem_m256i_t min_m256i = {_mm256_set1_epi32(0), _mm256_set1_epi32(0)};
 
-#pragma omp parallel for reduction(min:min_m256i) lastprivate(a)
     for (a = beg_a; a < end_a-8; a += 8) {
         __m256i inds  = _mm256_setr_epi32(a, a+1, a+2, a+3, a+4, a+5, a+6, a+7);
         __m256i tail  = _mm256_load_si256((__m256i*)&graph.tails[a]);
@@ -401,7 +397,7 @@ find_entering_arc_range_avx512(Graph& graph, int32_t beg_a, int32_t end_a)
 
     return min;
 }
-#elif defined(OMP_AVX512)
+#elif defined(AVX512)
 struct elem_m512i_t {
     __m512i ind;
     __m512i val;
@@ -503,15 +499,13 @@ find_entering_arc(Graph& graph)
             end_a = graph.m;
         }
 
-#if defined(OMP)
-        min = find_entering_arc_range_omp(graph, beg_a, end_a);
 #elif defined(AVX2)
         min = find_entering_arc_range_avx2(graph, beg_a, end_a);
-#elif defined(OMP_AVX2)
+#elif defined(AVX2)
         min = find_entering_arc_range_omp_avx2(graph, beg_a, end_a);
 #elif defined(AVX512)
         min = find_entering_arc_range_avx512(graph, beg_a, end_a);
-#elif defined(OMP_AVX512)
+#elif defined(AVX512)
         min = find_entering_arc_range_omp_avx512(graph, beg_a, end_a);
 #else
         min = find_entering_arc_range(graph, beg_a, end_a);
@@ -528,15 +522,13 @@ find_entering_arc(Graph& graph)
                 end_a = graph.a_curr;
             }
 
-#if defined(OMP)
-            min = find_entering_arc_range_omp(graph, beg_a, end_a);
 #elif defined(AVX2)
             min = find_entering_arc_range_avx2(graph, beg_a, end_a);
-#elif defined(OMP_AVX2)
+#elif defined(AVX2)
             min = find_entering_arc_range_omp_avx2(graph, beg_a, end_a);
 #elif defined(AVX512)
             min = find_entering_arc_range_avx512(graph, beg_a, end_a);
-#elif defined(OMP_AVX512)
+#elif defined(AVX512)
             min = find_entering_arc_range_omp_avx512(graph, beg_a, end_a);
 #else
             min = find_entering_arc_range(graph, beg_a, end_a);
@@ -680,7 +672,7 @@ change_states(Graph& graph)
     change_states_time += std::chrono::steady_clock::now() - beg_time;
 }
 
-// adapted from lemon-1.3.1/lemon/network_simplex.h
+
 static void
 update_tree(Graph& graph)
 {
@@ -808,7 +800,7 @@ update_tree(Graph& graph)
         }
     }
 
-    // Update num_succ from j_in to i_join
+    
     for (int32_t u = graph.j_in; u != graph.i_join; u = graph.parents[u]) {
         graph.num_succs[u] += old_succ_num;
     }
@@ -919,9 +911,7 @@ main(int argc, char* argv[])
     auto graph = read_dimacs(inp);
     inp.close();
 
-    // We use a block size of a multiple of 16 if possible to match with our
-    // alignment (i.e. 16 x sizeof(int32_t) = 512 bit) and minimize the number
-    // of excess elements for AVX2/AVX512 implementations.
+    
     graph.block_size = std::floor(std::sqrt(graph.m));
     graph.block_size = ((graph.block_size + 15) / 16) * 16;
     graph.block_size = factor * graph.block_size;
