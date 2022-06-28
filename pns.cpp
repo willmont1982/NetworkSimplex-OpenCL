@@ -133,11 +133,11 @@ read_dimacs(std::istream& inp)
         std::istringstream ss(line);
         ss >> c;
         switch (c) {
-        case 'n': // node descriptor
+        case 'n': // descriçao do nó
             ss >> node >> diff;
             graph.diffs[node-1] = diff;
             break;
-        case 'a': // arc descriptor
+        case 'a': //descriçao do arco
             ss >> tail >> head >> lower >> upper >> cost;
             graph.tails  [curr] = tail - 1;
             graph.heads  [curr] = head - 1;
@@ -195,6 +195,9 @@ read_dimacs(std::istream& inp)
 static void
 print_solution(Graph& graph, bool flows)
 {
+    const cl_context context, 
+    const cl_kernel matMulKernel, 
+    const cl_command_queue queue)
     long solution = 0;
     for (int32_t a = 0; a < graph.m; ++a) {
         if (graph.costs[a] > 0) {
