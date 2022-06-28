@@ -23,18 +23,18 @@ Este arquivo pode ser usado da seguinte forma:
 
     
     c pns v1.0.0
-    c # nodes             : 4
-    c # arcs              : 5
-    c # arcs in a block   : 5
-    c Init Time           : 0 ms
-    c # iterations        : 4
-    c Time                : 0 ms
-    c - find entering arc : 0 ms (0.1343)
-    c - find join node    : 0 ms (0.04215)
-    c - find leaving arc  : 0 ms (0.053802)
-    c - change flows      : 0 ms (0.0282871)
-    c - change states     : 0 ms (0.08259)
-    c - update tree       : 0 ms (0.403412)
-    c - update pots       : 0 ms (0.0274343)
+    c # nós                 : 4
+    c # arcos               : 5
+    c # arcos em um bloco   : 5
+    c tempo inicial         : 0 ms
+    c # iterações           : 4
+    c Time                  : 0 ms
+    c - encontrar arco entrando   : 0 ms (0.1343)
+    c - encontrar nó de junção    : 0 ms (0.04215)
+    c - encontrar arco de saída   : 0 ms (0.053802)
+    c - mudar fluxos              : 0 ms (0.0282871)
+    c - mudar de estado           : 0 ms (0.08259)
+    c - atualizar arvore          : 0 ms (0.403412)
+    c - atualizar pots            : 0 ms (0.0274343)
     s 11.4
 
