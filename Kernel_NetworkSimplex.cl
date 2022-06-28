@@ -1,18 +1,20 @@
-__kernel void mmul(
+__kernel void nsimplex(
     const int N,
-    __global float* A,
-    __global float* B,
-    __global float* C)
+    __global beg_a* A,
+    __global end_a* B,
+    
 {
     int k;
     int i = get_global_id(0);
     int j = get_global_id(1);
     float tmp;
-    if ((i < N) && (j < N))
-    {
-        tmp = 0.0;
-        for (k = 0; k < N; k++)
-            tmp += A[i*N+k] * B[k*N+j];
-        C[i*N+j] = tmp;
+    for (int32_t a = beg_a; a < end_a; ++a) {
+        int32_t c = graph.states[a] *
+            (graph.costs[a] +
+             graph.pots[graph.tails[a]] -
+             graph.pots[graph.heads[a]]);
+        if (min.val > c) {
+            min.val = c;
+            min.ind = a;
+        }
     }
-}
