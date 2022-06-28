@@ -434,7 +434,7 @@ find_entering_arc_range_omp_avx512(Graph& graph, int32_t beg_a, int32_t end_a)
 
     elem_m512i_t min_m512i = {_mm512_set1_epi32(0), _mm512_set1_epi32(0)};
 
-#pragma omp parallel for reduction(min:min_m512i) lastprivate(a)
+
     for (a = beg_a; a < end_a-16; a += 16) {
         __m512i inds  = _mm512_setr_epi32(a, a+1, a+2, a+3, a+4, a+5, a+6, a+7, a+8, a+9, a+10, a+11, a+12, a+13, a+14, a+15);
         __m512i tail  = _mm512_load_si512((__m512i*)&graph.tails[a]);
