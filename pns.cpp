@@ -217,10 +217,8 @@ struct elem_t {
     int32_t val;
 };
 
-#if defined(OMP)
-#pragma omp declare \
     reduction(min : elem_t : omp_out = omp_in.val < omp_out.val ? omp_in : omp_out) \
-    initializer(omp_priv = {0, 0})
+    
 
 static elem_t
 find_entering_arc_range_omp(Graph& graph, int32_t beg_a, int32_t end_a)
