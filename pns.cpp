@@ -6,8 +6,20 @@
 #include <numeric>
 #include <sstream>
 #include <vector>
-
 #include <immintrin.h>
+#ifndef __MULT_HDR
+#define __MULT_HDR
+#include <cstdio>
+#include <cstdlib>
+
+
+#include <vector>
+
+#define __CL_ENABLE_EXCEPTIONS
+
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+
+#include "c
 
 #include <boost/align/aligned_allocator.hpp>
 template <typename T>
@@ -683,7 +695,7 @@ update_tree(Graph& graph)
     int32_t old_last_succ = graph.last_succs[graph.i_out];
     graph.j_out = graph.parents[graph.i_out];
 
-    // Check if i_in and i_out coincide
+    de
     if (graph.i_in == graph.i_out) {
         // Update parent, pred, dir
         graph.parents[graph.i_in] = graph.j_in;
@@ -691,7 +703,7 @@ update_tree(Graph& graph)
         graph.dirs[graph.i_in] = graph.i_in == graph.tails[graph.a_in] ?
             DIR_UP : DIR_DOWN;
 
-        // Update thread and rev_thread
+        // Atualiza thread e rev_thread
         if (graph.threads[graph.j_in] != graph.i_out) {
             int32_t after = graph.threads[old_last_succ];
             graph.threads[old_rev_thread] = after;
@@ -708,33 +720,33 @@ update_tree(Graph& graph)
         int32_t thread_continue = old_rev_thread == graph.j_in ?
             graph.threads[old_last_succ] : graph.threads[graph.j_in];
 
-        // Update _thread and _parent along the stem nodes (i.e. the nodes
-        // between i_in and i_out, whose parent have to be changed)
-        int32_t stem = graph.i_in;                    // the current stem node
-        int32_t par_stem = graph.j_in;                // the new parent of stem
-        int32_t next_stem;                            // the next stem node
-        int32_t last = graph.last_succs[graph.i_in];  // the last successor of stem
+        // Atualiza _thread e _parent ao longo dos nós de haste (ou seja, os nós
+        // entre i_in e i_out, cujo pai deve ser alterado)
+        int32_t stem = graph.i_in;                    // o nó tronco atual
+        int32_t par_stem = graph.j_in;                // o novo pai da haste
+        int32_t next_stem;                           // o próximo nó da haste
+        int32_t last = graph.last_succs[graph.i_in];  // o último sucessor da haste
         int32_t before, after = graph.threads[last];
         graph.threads[graph.j_in] = graph.i_in;
         graph.dirty_revs.clear();
         graph.dirty_revs.push_back(graph.j_in);
         while (stem != graph.i_out) {
-            // Insert the next stem node into the thread list
+            // Insira o próximo nó da haste na lista de threads
             next_stem = graph.parents[stem];
             graph.threads[last] = next_stem;
             graph.dirty_revs.push_back(last);
 
-            // Remove the subtree of stem from the thread list
+            // Remova a subárvore de haste da lista de threads
             before = graph.rev_threads[stem];
             graph.threads[before] = after;
             graph.rev_threads[after] = before;
 
-            // Change the parent node and shift stem nodes
+            // Altere o nó pai e desloque os nós da haste
             graph.parents[stem] = par_stem;
             par_stem = stem;
             stem = next_stem;
 
-            // Update last and after
+            // Atualizar por último e depois
             last = graph.last_succs[stem] == graph.last_succs[par_stem] ?
                 graph.rev_threads[par_stem] : graph.last_succs[stem];
             after = graph.threads[last];
@@ -744,21 +756,21 @@ update_tree(Graph& graph)
         graph.rev_threads[thread_continue] = last;
         graph.last_succs[graph.i_out] = last;
 
-        // Remove the subtree of i_out from the thread list except for
-        // the case when old_rev_thread equals to j_in
+        // Remova a subárvore de i_out da lista de threads, exceto
+        // o caso em que old_rev_thread é igual a j_in
         if (old_rev_thread != graph.j_in) {
             graph.threads[old_rev_thread] = after;
             graph.rev_threads[after] = old_rev_thread;
         }
 
-        // Update rev_thread using the new thread values
+        // Atualize rev_thread usando os novos valores de thread
         for (int32_t i = 0; i != int32_t(graph.dirty_revs.size()); ++i) {
             int32_t u = graph.dirty_revs[i];
             graph.rev_threads[graph.threads[u]] = u;
         }
 
-        // Update pred, dir, last_succ and num_succ for the
-        // stem nodes from i_out to i_in
+        // Atualize pred, dir, last_succ e num_succ para o
+        // nós de haste de i_out para i_in
         int32_t tmp_sc = 0, tmp_ls = graph.last_succs[graph.i_out];
         for (int32_t u = graph.i_out, p = graph.parents[u];
                 u != graph.i_in;
@@ -775,7 +787,7 @@ update_tree(Graph& graph)
         graph.num_succs[graph.i_in] = old_succ_num;
     }
 
-    // Update last_succ from j_in towards the root
+    // Atualize last_succ de j_in para a raiz
     int32_t up_limit_out = graph.last_succs[graph.i_join] == graph.j_in ?
         graph.i_join : -1;
     int32_t last_succ_out = graph.last_succs[graph.i_out];
@@ -785,7 +797,7 @@ update_tree(Graph& graph)
         graph.last_succs[u] = last_succ_out;
     }
 
-    // Update last_succ from j_out towards the root
+    // Atualize last_succ de j_out para a raiz
     if (graph.i_join != old_rev_thread && graph.j_in != old_rev_thread) {
         for (int32_t u = graph.j_out;
                 u != up_limit_out && graph.last_succs[u] == old_last_succ;
@@ -804,7 +816,7 @@ update_tree(Graph& graph)
     for (int32_t u = graph.j_in; u != graph.i_join; u = graph.parents[u]) {
         graph.num_succs[u] += old_succ_num;
     }
-    // Update num_succ from j_out to i_join
+    // Atualize num_succ de j_out para i_join
     for (int32_t u = graph.j_out; u != graph.i_join; u = graph.parents[u]) {
         graph.num_succs[u] -= old_succ_num;
     }
